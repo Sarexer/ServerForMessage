@@ -31,6 +31,7 @@ public class Main {
         String getOchered = "select number,time from notes.ochered";
         String clearOchered = "delete from notes.ochered where number=\'";
         String dropTable = "drop table notes.";
+
         Date currentTime = new Date();
         ArrayList<String> notesTODelete = new ArrayList<>();
         try {
@@ -38,13 +39,20 @@ public class Main {
             while (resultSet.next()){
                 String number = resultSet.getString("number");
                 long timeConv = resultSet.getLong("time");
-                if((currentTime.getTime() - timeConv) > 86400000){
+                if((currentTime.getTime() - timeConv) > 86400000){  //86400000
                     notesTODelete.add(number);
                 }
 
             }
+            String divider = "insert into registration.logs (action,time) values (\"          \",\"          \")";
             deleteMessages(notesTODelete);
+
+            statement.execute(divider);
+            statement.execute(divider);
+            statement.execute(divider);
             for (String number : notesTODelete) {
+                String log = "insert into registration.logs (action,time) values (\" Из очереди удалена " + number + "\",\"" + new Date().toString() + "\")";
+                statement.execute(log);
                 statement.execute(clearOchered + number + "\'");
                 statement.execute(dropTable + number);
             }
@@ -71,7 +79,7 @@ public class Main {
                 sum = resultSet.getInt("sum");
 
                 if(sum < 10){
-                    if((currentTime.getTime() - timeConv) >= 86400000){
+                    if((currentTime.getTime() - timeConv) >= 86400000){ //86400000
                         notesToDelete.add(number);
                     }
                 }else if(sum >= 10){
@@ -84,8 +92,10 @@ public class Main {
             }
 
             for (String note : notesToDelete) {
+                String log = "insert into registration.logs (action,time) values (\" Из бесед удалена " + note + "\",\"" + new Date().toString() + "\")";
                 statement.execute(clearConversation + note + "\'");
                 statement.execute(dropTable + note);
+                System.out.println("Записка удалена" + note);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -163,7 +173,7 @@ public class Main {
         messages.add(0,p);
     }
 
-    public ArrayList<String> loadConv(String note){
+    public ArrayList<String> loadConv(String note, int count){
         String load = "select message,ID from notes." +note;
 
         ArrayList<String> conv = new ArrayList<>();
@@ -176,6 +186,9 @@ public class Main {
             conv.add(String.valueOf(resultSet.getInt("ID")));
             conv.add(note);
             resultSet.beforeFirst();
+            for(int i =0;i<count;i++){
+                resultSet.next();
+            }
             while(resultSet.next()){
                 conv.add(resultSet.getString("message"));
             }
@@ -245,22 +258,34 @@ public class Main {
         }
         return notes;
     }
-    public ArrayList<String> updateMsg(ArrayList<String> notes){
-        ArrayList<String> firstMsg = new ArrayList<>();
+    public ArrayList<ArrayList<String>> updateMsg(ArrayList<String> notes){
+        ArrayList<ArrayList<String>> firstMsg = new ArrayList<>();
         for(int i = 0; i<notes.size();i++){
             String note = notes.get(i);
             String update = "select message from notes." + note;
+            String gettime = "SELECT time FROM notes.conv where number = \'"+note+"\'";
 
             try {
                 ResultSet resultSet = statement.executeQuery(update);
                 resultSet.last();
-                firstMsg.add(String.valueOf(resultSet.getString("message")));
+                ArrayList<String> n = new ArrayList<>();
+                n.add(note);
+                n.add(resultSet.getString("message"));
+                resultSet.previous();
+                n.add(resultSet.getString("message"));
+                resultSet.close();
+                ResultSet resulttime = statement.executeQuery(gettime);
+                resulttime.next();
+                n.add(Long.toString(resulttime.getLong("time")));
+                firstMsg.add(n);
 
             } catch (SQLException e) {
                 e.printStackTrace();
             }
 
         }
+
+
         return firstMsg;
     }
     public ArrayList<String> newTable(String tableName, int ID, String msg){
@@ -273,6 +298,9 @@ public class Main {
                             "ID int not null)";
         String insertMessage = "insert into notes. " + tableName + " (message,ID) values (\"" + msg + "\",\"" + ID + "\")";
         String insertToQueue = "insert into notes.ochered (number, ID, time) values (\"" + tableName + "\",\"" + ID + "\", " + currentTime.getTime() + ")";
+
+
+
 
 
 

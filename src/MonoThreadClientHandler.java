@@ -62,10 +62,11 @@ public class MonoThreadClientHandler implements Runnable {
                     int id = Integer.parseInt(strings[1]);
 
                     ArrayList<String> notes = m.updateNotes(id);
-                    ArrayList<String> messages = m.updateMsg(notes);
+                    /*ArrayList<Note> messages = m.updateMsg(notes);
                     ArrayList<ArrayList<String>> l = new ArrayList<>();
                     l.add(notes);
-                    l.add(messages);
+                    l.add(messages);*/
+                    ArrayList<ArrayList<String>> l = m.updateMsg(notes);
                     ByteArrayOutputStream BAOS = new ByteArrayOutputStream();
                     ObjectOutputStream OOS = new ObjectOutputStream(BAOS);
                     OOS.writeObject(l);
@@ -77,8 +78,8 @@ public class MonoThreadClientHandler implements Runnable {
                     break;
                 case "load":
                     String Note = strings[1];
-
-                    ArrayList<String> conv = m.loadConv(Note);
+                    int count = Integer.valueOf(strings[2]);
+                    ArrayList<String> conv = m.loadConv(Note, count);
                     out.writeUTF(Integer.toString(conv.size()));
                     ByteArrayOutputStream BAOs = new ByteArrayOutputStream();
                     ObjectOutputStream OOs = new ObjectOutputStream(BAOs);

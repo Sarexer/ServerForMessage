@@ -6,6 +6,8 @@ import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Timer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -21,8 +23,17 @@ public class MultiThreadServer  {
         Main m = new Main();
 
         m.filingOchered();
-        Thread clearThread = new Thread(new ClearThread(), "clearThread");
-        clearThread.start();
+
+        Date clearDate = new Date(new Date().getTime() + 86400000); //
+        clearDate.setHours(1);
+        clearDate.setMinutes(0);
+        clearDate.setSeconds(0);
+        System.out.println("Время очистки: " + clearDate.toString() );
+        long timeToWait = clearDate.getTime() - new Date().getTime();
+        System.out.println("до запуска " + timeToWait/1000 + "c" );
+        Timer timer = new Timer();
+        timer.schedule(new ClearTask(), timeToWait, 86400000);
+
         try (ServerSocket server = new ServerSocket(3346);
              BufferedReader br = new BufferedReader(new InputStreamReader(System.in))) {
             System.out.println("Server socket created, command console reader for listen to server commands");
