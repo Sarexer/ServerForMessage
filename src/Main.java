@@ -93,6 +93,7 @@ public class Main {
 
             for (String note : notesToDelete) {
                 String log = "insert into registration.logs (action,time) values (\" Из бесед удалена " + note + "\",\"" + new Date().toString() + "\")";
+                statement.execute(log);
                 statement.execute(clearConversation + note + "\'");
                 statement.execute(dropTable + note);
                 System.out.println("Записка удалена" + note);
